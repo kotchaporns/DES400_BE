@@ -1,12 +1,16 @@
 from flask import Flask
-from audioApi import audio_api
+from flask_bcrypt import Bcrypt
+from config.dbconfig import init_app
+from controller.userController import userController
+from controller.audioController import audioController
 
 app = Flask(__name__)
-app.register_blueprint(audio_api)
+bcrypt = Bcrypt()
+init_app(app)
 
-@app.route('/hello-world')
-def hello():
-    return "Hello, World!"
+app.register_blueprint(userController)
+app.register_blueprint(audioController)
 
 if __name__ == '__main__':
-    app.run()
+
+    app.run(debug = True)
