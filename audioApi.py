@@ -8,7 +8,7 @@ from itertools import groupby
 import librosa
 import librosa.display
 
-audio_api = Blueprint('audio_api', __name__)
+test_api = Blueprint('test_api', __name__)
 
 
 s3 = boto3.client(
@@ -17,12 +17,12 @@ s3 = boto3.client(
    aws_secret_access_key="WgkJSILBSNjDtf+BEY9OU7tPbey1TCx8fNDEK2w7",
    aws_session_token="FwoGZXIvYXdzEPj//////////wEaDJjdm9jxn/xPQ0UXwyLLAWQyege+0P53O+PDiUhGCxEmzmspIP32vwWD0HgVf5IVkVETYwxBrez7U+ZiezFwqIPV6b3kE1KxgQ9QsBeSvfkkcStedzRGxuDPu0kwJ0Pyns4nUQQO8agU1RPwt06jBgNr1vEDLCi30UkAsA9tDlt9rzs1WJxVJlD8oIKmxEipJdzaMeGpLSVhtVr5bkOvUET583K91sgJm8zUJYud/ex+fNDCs8XuOXIMU9/9fAVJZfxsGd0Kw2VVBYwHXbNOqjKJp1B+avfqhv1QKL7l+6oGMi0+gWElnUnMDhsACRIpv5qpKG997hc+gK9hHEPUFLZrc3+ZqAlItz6jwCpuuoU="
 )
-@audio_api.route("/send-audio", methods=['POST'])
+@test_api.route("/test-audio", methods=['POST'])
 def audio():
     file = request.files['audioFile']
     print(file)
 
-    # file.save(os.path.join("./tmp", file.filename))
+    file.save(os.path.join("./tmp", file.filename))
 
     # upload_data =  s3.upload_fileobj(file, "snorewisebucket", file.filename)
     #  # Load the model
@@ -31,8 +31,8 @@ def audio():
     model_path = "./MobileNetV2_size224_bs16"
 
     model = load_model(model_path)
-    # wav, sequence_stride, min_wav = preprocess_audio("./tmp/"+file.filename, SNR_dB=0)
-    wav, sequence_stride, min_wav = preprocess_audio(audio_stream, SNR_dB=0)
+    wav, sequence_stride, min_wav = preprocess_audio("./tmp/"+file.filename, SNR_dB=0)
+    # wav, sequence_stride, min_wav = preprocess_audio(audio_stream, SNR_dB=0)
     audio_slices = preprocess_audio_for_model(wav, sequence_stride)
     yhat, calls = perform_inference(model, audio_slices)
 
@@ -40,7 +40,7 @@ def audio():
     print("Predicted Labels:", yhat)
     print("Total Calls:", calls)
 
-    # os.remove("./tmp/"+file.filename)
+    os.remove("./tmp/"+file.filename)
 
 
     return "https://snorewisebucket.s3.amazonaws.com/" + file.filename
@@ -60,9 +60,9 @@ def load_wav_16k_mono(filename):
         return wav
 
     # Preprocess the audio
-def preprocess_audio(audio_stream, SNR_dB=0):
-        # wav = load_wav_16k_mono(audio_path)
-        wav, sr = librosa.load(audio_stream, sr=16000, mono=True, dtype=np.float64)
+def preprocess_audio(audio_path, SNR_dB=0):
+        wav = load_wav_16k_mono(audio_path)
+        # wav, sr = librosa.load(audio_stream, sr=16000, mono=True, dtype=np.float64)
         avg_power_of_signal = sum(wav**2) / len(wav)
 
         SNR_linear = 10 ** (SNR_dB / 10)

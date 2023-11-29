@@ -1,5 +1,5 @@
 #pulling python image
-FROM python:3
+FROM python:3.11
 
 
 
@@ -18,4 +18,4 @@ COPY . .
 #configure the container to run in an executed manner
 # ENTRYPOINT [ "python" ]
 
-CMD ["python3", "-m", "flask", "run","--host=0.0.0.0"]
+CMD ["python3", "-m", "flask", "run","--host=0.0.0.0", "--port=9000"]

@@ -20,6 +20,7 @@ s3 = boto3.client(
 )
 
 def predictSnore(file):
+     # upload_data =  s3.upload_fileobj(file, "snorewisebucket", file.filename)
     audio_stream = file.stream
     yhat, calls = predictModel(audio_stream)
     return  yhat, calls
