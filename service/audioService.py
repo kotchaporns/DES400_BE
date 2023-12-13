@@ -8,8 +8,8 @@ import numpy as np
 from itertools import groupby
 import librosa
 import librosa.display
-from pydub import AudioSegment
 from entity.recordEntity import db,Record
+from entity.dailyEntity import Daily
 from dotenv import load_dotenv
 
 from .modelService import predictModel
@@ -42,6 +42,25 @@ def predictSnore(file, user_id, date, time_start, time_stop):
             s3_path = f"https://{bucketname}.s3.amazonaws.com/" + file.filename
     except Exception as e:
         print(f"S3 upload error {e}")
+    
+    num_snoring = yhat.count(1)
+    num_sleeptime = len(yhat)
+    num_non_snoring = num_sleeptime - num_snoring
+
+    
+    exist_record = Daily.query.filter_by(user_id=user_id, date=date).first()
+    if exist_record:
+        print(exist_record)
+        exist_record.snoring = (exist_record.snoring or 0) + num_snoring
+        exist_record.non_snoring = (exist_record.non_snoring or 0) + num_non_snoring
+        exist_record.intensity = (exist_record.intensity or 0) + calls
+        exist_record.sleep_time = (exist_record.sleep_time or 0) + num_sleeptime
+        db.session.commit()
+    
+    else:
+        daily = Daily(user_id=user_id, date=date, alcohol=False, exercise=False, stress=False, snoring=num_snoring, non_snoring=num_non_snoring, intensity=calls, sleep_time=num_sleeptime)
+        db.session.add(daily)
+        db.session.commit()
 
     record = Record(user_id=user_id, date=date, time_start=time_start, time_stop=time_stop, path=s3_path, model_result=str(yhat), calls=str(calls))
     db.session.add(record)
