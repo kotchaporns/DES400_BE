@@ -10,11 +10,13 @@ import librosa
 import librosa.display
 from pydub import AudioSegment
 from entity.recordEntity import db,Record
+from dotenv import load_dotenv
 
 from .modelService import predictModel
 
+load_dotenv()
 s3 = boto3.client("s3")
-bucketname = "snorewisebucket"
+bucketname = os.getenv("S3_BUCKET_NAME")
 
 # s3 = boto3.client(
 #    "s3",
@@ -37,7 +39,7 @@ def predictSnore(file, user_id, date, time_start, time_stop):
     try:
         with open(temp_audio_path,'rb') as temp_audio_file:
             s3.upload_fileobj(temp_audio_file, bucketname, file.filename)
-            s3_path = "https://snorewisebucket.s3.amazonaws.com/" + file.filename
+            s3_path = f"https://{bucketname}.s3.amazonaws.com/" + file.filename
     except Exception as e:
         print(f"S3 upload error {e}")
 
