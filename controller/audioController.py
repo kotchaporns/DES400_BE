@@ -13,8 +13,8 @@ def predict():
         time_start = request.form['time_start']
         time_stop = request.form['time_stop']
         # print(user_id)
-        record, calls = predictSnore(file, user_id, date, time_start, time_stop)
-        return jsonify({'message':'Prediction Successful', 'response': {'model_result': record.model_result, 'calls': str(calls), 'user_id':user_id, 'date': date, 'time_start':time_start, 'time_stop':time_stop}})
+        record = predictSnore(file, user_id, date, time_start, time_stop)
+        return jsonify({'message':'Prediction Successful', 'response': {'model_result': record.model_result, 'calls': record.calls, 'user_id':user_id, 'date': date, 'time_start':time_start, 'time_stop':time_stop, 'S3_path': record.path}})
         # return jsonify({'message': 'success'})
     
 
