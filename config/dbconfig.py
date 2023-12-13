@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 import pymysql
 
-DATABASE_URI = 'mysql+pymysql://admin:password@snorewisemysql.c4d8pauabtno.us-east-1.rds.amazonaws.com:3306/snorewise'
+DATABASE_URI = 'mysql+pymysql://jiji:grumpyissad@snorewise-db.c4d8pauabtno.us-east-1.rds.amazonaws.com/snorewise-db'
 
 db = SQLAlchemy()
 
