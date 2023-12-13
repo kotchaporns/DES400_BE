@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, Response
 import boto3, botocore
+import tempfile
 import json
 import os
 import tensorflow as tf
@@ -24,12 +25,24 @@ bucketname = "snorewisebucket"
 
 def predictSnore(file, user_id, date, time_start, time_stop):
     audio_stream = file.stream
-    yhat, calls = predictModel(audio_stream)
-    upload_data =  s3.upload_fileobj(file, bucketname, file.filename)
-    s3_path = "https://snorewisebucket.s3.amazonaws.com/" + file.filename
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_audio_file:
+        temp_audio_path = temp_audio_file.name
+        temp_audio_file.write(audio_stream.read())
+        
+    try:
+        yhat, calls = predictModel(temp_audio_path)
+    except Exception as e:
+        print(f"Model predict error: {e}")
+
+    try:
+        with open(temp_audio_path,'rb') as temp_audio_file:
+            s3.upload_fileobj(temp_audio_file, bucketname, file.filename)
+            s3_path = "https://snorewisebucket.s3.amazonaws.com/" + file.filename
+    except Exception as e:
+        print(f"S3 upload error {e}")
+
     record = Record(user_id=user_id, date=date, time_start=time_start, time_stop=time_stop, path=s3_path, model_result=str(yhat), calls=str(calls))
     db.session.add(record)
     db.session.commit()
 
-    return record, calls
-#     return  yhat, calls
+    return record
