@@ -42,6 +42,8 @@ def userLogin():
             return jsonify({'error':'username, and password are required'}), 400
         
         result = login(username, password)
+        if(result.get('error')):
+            return jsonify(result),401
         return jsonify(result)
     
     except Exception as e:
@@ -85,7 +87,6 @@ def userpredict():
 def userupdate(user_id):
     try:
         data = request.get_json()
-
         result = updateUser(user_id, data)
         
         return jsonify(result)
