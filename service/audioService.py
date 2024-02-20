@@ -12,6 +12,8 @@ from entity.recordEntity import db,Record
 from entity.dailyEntity import Daily
 from dotenv import load_dotenv
 from sqlalchemy import func
+from datetime import datetime
+
 
 from .modelService import predictModel
 
@@ -69,77 +71,33 @@ def predictSnore(file, user_id, date, time_start, time_stop):
 
     return record
 
-def getDaily(user_id, date):
-        exist_daily = Daily.query.filter_by(user_id=user_id, date=date).first()
-        if exist_daily:
-            return {
-                'user_id': exist_daily.user_id,
-                'factor_id': exist_daily.factor_id,
-                'date': exist_daily.date,
-                'alcohol':exist_daily.alcohol,
-                'exercise':exist_daily.exercise,
-                'stress':exist_daily.stress,
-                'snoring':exist_daily.snoring,
-                'non_snoring':exist_daily.non_snoring,
-                'intensity':exist_daily.intensity,
-                'sleep_time':exist_daily.sleep_time
-                }
-        
-        return {'Error':'Data not exist'}
 
-
-def updateDailyFactor(data):
+def getpredict(user_id, date):
     try:
-        user_id = data.get('user_id')
-        date = data.get('date')
-        if(not user_id or not date):
-             return {'error': 'No user_id or date'}
-        exist_daily = Daily.query.filter_by(user_id=user_id, date=date).first()
-        if not exist_daily:
-                    return {'error': 'Daily not found'}
+        date = datetime.strptime(date, '%Y-%m-%d').date()
 
-        exist_daily.alcohol = data.get('alcohol', exist_daily.alcohol)
-        exist_daily.exercise = data.get('exercise', exist_daily.exercise)
-        exist_daily.stress = data.get('stress', exist_daily.stress)
-    
-        db.session.commit()
-        return {
-                'user_id': exist_daily.user_id,
-                'factor_id': exist_daily.factor_id,
-                'date': exist_daily.date,
-                'alcohol':exist_daily.alcohol,
-                'exercise':exist_daily.exercise,
-                'stress':exist_daily.stress,
-                'snoring':exist_daily.snoring,
-                'non_snoring':exist_daily.non_snoring,
-                'intensity':exist_daily.intensity,
-                'sleep_time':exist_daily.sleep_time
-            }
+        result = Record.query.filter_by(user_id=user_id, date=date).all()
+
+        if result:
+            print(result) 
+        else:
+            print("No records found")
+
+        records = [{'record_id': entry.record_id, 'user_id': entry.user_id,
+                    'date': entry.date.strftime('%Y-%m-%d'),
+                    'time_start': entry.time_start.strftime('%H:%M:%S'),
+                    'time_stop': entry.time_stop.strftime('%H:%M:%S'),
+                    'path': entry.path, 
+                    'calls': entry.calls,
+                    'model_result': entry.model_result} for entry in result]
+
+        return {"response": records}
 
     except Exception as e:
-        return {"Error update factor": f"{e}"}
+        return {"error": 'Invalid input'}
     
 
 
 
-def cal_notification(user_id):
-    try:
-        # Query from table Daily
-        result = db.session.query(
-            Daily.date,
-            func.sum(Daily.intensity).label('total_intensity')
-        ).filter_by(user_id=user_id).group_by(Daily.date).all()
 
-        notification_data = []
-
-        for date, total_intensity in result:
-            # Convert date to string for better JSON serialization
-            formatted_date = date.strftime('%d/%m/%Y')
-            notification_data.append({'date': formatted_date, 'intensity': total_intensity})
-
-        return notification_data
-
-    except Exception as e:
-        print(f"An error occurred: {str(e)}")
-        return None  
 

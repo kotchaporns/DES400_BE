@@ -1,5 +1,5 @@
 from flask import Blueprint,request,jsonify
-from service.audioService import predictSnore, getDaily, updateDailyFactor, cal_notification
+from service.audioService import predictSnore, getpredict
 
 audioController = Blueprint('audioController', __name__)
 
@@ -21,43 +21,20 @@ def predict():
     except Exception as e:
       return jsonify({'error': str(e)}), 500
     
-@audioController.route('/get-daily', methods=['GET'])
-def userGetDaily():
-    try:
-        user_id = request.args.get('user_id')
-        date = request.args.get('date')
-
-        daily = getDaily(user_id, date)
-        
-        return jsonify({'message':'success', 'response':daily})
-    except Exception as e:
-      return jsonify({'error': str(e)}), 500
     
-
-@audioController.route('/update-factor', methods=['PUT'])
-def userGeuserUpdatetDailyFactor():
+@audioController.route('/getpredict', methods=['POST'])
+def userpredict():
     try:
         data = request.get_json()
-        result = updateDailyFactor(data)
+        user_id = data.get('user_id')
+        date = data.get('date')
+
+        if not user_id or not date:
+            return jsonify({'error':'user_id, and date are required'}), 400
         
+        result = getpredict(user_id, date)
         return jsonify(result)
+    
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-    
-@audioController.route('/notify/<int:user_id>', methods=['POST'])
-def get_notification(user_id):
-
-    try:
-        notification_data = cal_notification(user_id)
-
-        if notification_data is not None:
-            return jsonify(notification_data), 200 # Return as JSON response
-        else:
-            # Return an error response if cal_notification returns None
-            return jsonify({'error': 'An error occurred while processing the request.'}), 500
-
-    except Exception as e:
-        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
-
-
