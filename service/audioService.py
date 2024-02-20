@@ -11,6 +11,9 @@ import librosa.display
 from entity.recordEntity import db,Record
 from entity.dailyEntity import Daily
 from dotenv import load_dotenv
+from sqlalchemy import func
+from datetime import datetime
+
 
 from .modelService import predictModel
 
@@ -67,3 +70,34 @@ def predictSnore(file, user_id, date, time_start, time_stop):
     db.session.commit()
 
     return record
+
+
+def getpredict(user_id, date):
+    try:
+        date = datetime.strptime(date, '%Y-%m-%d').date()
+
+        result = Record.query.filter_by(user_id=user_id, date=date).all()
+
+        if result:
+            print(result) 
+        else:
+            print("No records found")
+
+        records = [{'record_id': entry.record_id, 'user_id': entry.user_id,
+                    'date': entry.date.strftime('%Y-%m-%d'),
+                    'time_start': entry.time_start.strftime('%H:%M:%S'),
+                    'time_stop': entry.time_stop.strftime('%H:%M:%S'),
+                    'path': entry.path, 
+                    'calls': entry.calls,
+                    'model_result': entry.model_result} for entry in result]
+
+        return {"response": records}
+
+    except Exception as e:
+        return {"error": 'Invalid input'}
+    
+
+
+
+
+

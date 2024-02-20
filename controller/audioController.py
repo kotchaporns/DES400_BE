@@ -1,5 +1,5 @@
 from flask import Blueprint,request,jsonify
-from service.audioService import predictSnore
+from service.audioService import predictSnore, getpredict
 
 audioController = Blueprint('audioController', __name__)
 
@@ -20,3 +20,21 @@ def predict():
 
     except Exception as e:
       return jsonify({'error': str(e)}), 500
+    
+    
+@audioController.route('/getpredict', methods=['POST'])
+def userpredict():
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        date = data.get('date')
+
+        if not user_id or not date:
+            return jsonify({'error':'user_id, and date are required'}), 400
+        
+        result = getpredict(user_id, date)
+        return jsonify(result)
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    

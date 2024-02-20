@@ -1,6 +1,6 @@
 from flask import Blueprint,request,jsonify
-from service.userService import create_user, login, getpredict, getuser, updateUser
-from entity.userEntity import db, User
+from service.userService import create_user, login, getuser, updateUser
+
 
 userController = Blueprint('userController', __name__)
 
@@ -42,6 +42,8 @@ def userLogin():
             return jsonify({'error':'username, and password are required'}), 400
         
         result = login(username, password)
+        if(result.get('error')):
+            return jsonify(result),401
         return jsonify(result)
     
     except Exception as e:
@@ -62,30 +64,12 @@ def userdata():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     
-@userController.route('/getpredict', methods=['POST'])
-def userpredict():
-    try:
-        data = request.get_json()
-        user_id = data.get('user_id')
-        date = data.get('date')
-
-        if not user_id or not date:
-            return jsonify({'error':'user_id, and date are required'}), 400
-        
-        result = getpredict(user_id, date)
-        return jsonify(result)
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-    
-
 
     
 @userController.route('/update-user/<int:user_id>', methods=['PUT'])
 def userupdate(user_id):
     try:
         data = request.get_json()
-
         result = updateUser(user_id, data)
         
         return jsonify(result)
