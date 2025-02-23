@@ -14,13 +14,3 @@
 
 - flask run 
 - export FLASK_DEBUG=True / $env:FLASK_DEBUG = "True"
-
-
-
-## create db.sqlite3
-
-- flask shell
-db.create_all()
-exit()
-
-- sqlite3 instance/db.sqlite3
